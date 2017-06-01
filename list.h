@@ -2,7 +2,7 @@
 * Header:
 *    LIST
 * Summary:
-*    
+*    An implementation of the std::list class
 * Author
 *    Nathan Bench, Jed Billman, Jeremy Chandler, Justin Chandler
 ************************************************************************/
@@ -10,12 +10,19 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include "node.h"
 #include <iostream>
+#include <cassert>
 
-//forward declaration for ListIterator
+
+// forward declarations
+template <class T>            // 49
+class Node;
+
 template <class T>
-class ListIterator;
+class ListIterator;           // 136
+
+template <class T>
+class ListConstIterator;
 
 /****************************************************
 * LIST
@@ -25,270 +32,326 @@ template <class T >
 class List
 {
 public:
-	List() {};
-	List(List & rhs) {};
-	~List() {};
-
-	bool empty();
-	int size();
+	List(): pHead(NULL), pTail(NULL), numItems(0) {};
+	List(const List <T> & rhs) throw (const char *);
+	~List();
+   
+   // operator
+   List <T> & operator = (const List <T> & rhs) throw (const char *);
+   
+   // std container interfaces
+	bool empty()         { return !pHead && !pTail && (numItems == 0); }
+	int size()           { return numItems;                            }
 	void clear();
-	void push_back(T & item) throw (const char *);
-	void push_front(T & item) throw (const char *);
+   
+   // list specific
+	void push_back(const T & item) throw (const char *);
+	void push_front(const T & item) throw (const char *);
 	void remove(ListIterator<T> & it) throw (const char *);
-	T front() throw (const char *);
-	T back() throw (const char *);
-	ListIterator <T> insert(T & item) throw (const char *);
-	ListIterator <T> begin() throw (const char *);
-	ListIterator <T> rbegin();
-	ListIterator <T> end();
-	ListIterator <T> rend();
+	T & front() throw (const char *);
+	T & back() throw (const char *);
+   
+	ListIterator <T> insert(T & item, ListIterator <T> & it) throw (const char *);
+   
+	// iterators
+	ListIterator <T> begin()    { return ListIterator <T>(pHead); }
+	ListIterator <T> rbegin()   { return ListIterator <T>(pTail); }
+	ListIterator <T> end()      { return ListIterator <T>(NULL); }
+	ListIterator <T> rend()     { return ListIterator <T>(NULL); }
 
 private:
-	int l_size;
+   Node <T> * pHead;
+   Node <T> * pTail;
+   int numItems;
 };
 
-/************************************************
-* LIST ITERATOR
-* An iterator through List
-*************************************************/
+/***********************************************
+ * Node
+ * A node to be used in a linked list
+ **********************************************/
 template <class T>
-class ListIterator
+class Node
 {
-public:
-	// default constructor
-	ListIterator() : p(NULL) {}
-	// point to some item "p"
-	ListIterator(T * p) : p(p){};
-	// copy constructor
-	ListIterator(const ListIterator<T> & rhs) { *this = rhs; }
-	//assignment operator
-	ListIterator & operator = (const ListIterator & rhs)
-	{
-		this->p = rhs.p;
-		return *this;
-	}
-	//prefix increment
-	ListIterator <T> & operator ++ ()
-	{
-		p++;
-		return *this;
-	}
-	//postfix increment 
-	ListIterator <T> & operator++(int postfix)
-	{
-		ListIterator temp(*this);
-		p++;
-		return temp;
-	}
-
-
-
-private:
-	T * p;
+   public:
+      // constructors
+      Node(): pNext(NULL), pPrev(NULL) {}
+      Node(const T & t): data(t), pNext(NULL), pPrev(NULL) {}
+      
+      // members
+      Node <T> * pNext, * pPrev;
+      T data;
 };
-	/***********************************************
-	* COPY
-	* Copy a linked­list. Takes a pointer to a Node as a parameter and returns a newly
-	* created linked­list containing a copy of all the nodes below the list represented by the
-	* parameter. This should be a non­member function.
-	***********************************************/
-	template <class T>
-	Node <T> * copy(const Node <T> * pSource) throw (const char *)
-	{
-		// trivial case
-		if (NULL == pSource)
-			return NULL;
 
-		try
-		{
-			// allocate a new head
-			Node <T> * pDestination = new Node <T>(pSource->data);
-			Node <T> * pCurrent = pDestination;
+/***********************************************
+ * LIST :: CLEAR
+ * clear the list
+ **********************************************/
+template<class T>
+void List<T> :: clear()
+{
 
-			// loop through the rest of the source linked list
-			while (pSource->pNext)
-			{
-				pSource = pSource->pNext;
-				pCurrent->pNext = new Node <T>(pSource->data);
-				pCurrent = pCurrent->pNext;
-			}
+}
 
-			return pDestination;
-		}
-		catch (std::bad_alloc)
-		{
-			throw "ERROR: Failed to allocate memory for list\n";
-		}
-	}
+/***********************************************
+ * LIST :: PUSH BACK
+ * push item to back of list
+ * CITE: Brother Jones
+ **********************************************/
+template <class T> 
+void List <T> ::push_back(const T & data) throw (const char *) 
+{ 
+   try 
+   { 
+      // create the node 
+      Node <T> * pNew = new Node <T>(data); 
 
-	/***********************************************
-	* INSERT
-	* Insert a new Node into the current linked­list. The first parameter is the value to
-	* be placed in the new Node. The second parameter is the Node preceding the new Node in the
-	* list. An optional third parameter is set to true if the new item is to be at the head of the
-	* list. Please return a pointer to the newly created Node. This should be a non­member function.
-	***********************************************/
-	template <class T>
-	Node <T> * insert(const T & t, Node <T> * &pCurrent, bool isHead = false)
-	{
-		try
-		{
-			Node <T> * pNew = new Node <T>(t);
-			// IF NULL
-			if (pCurrent == NULL)
-			{
-				pCurrent = pNew;
-				pCurrent->pNext = NULL;
-				return pNew;
-			}
+      // point it to the old tail 
+      pNew->pPrev = pTail; 
 
-			// IF isHead
-			if (pCurrent != NULL && isHead)
-			{
-				pNew->pNext = pCurrent;
-				pCurrent = pNew;
-				return pCurrent;
-			}
+      // now point tail to the new guy 
+      if (pTail != NULL) 
+         pTail->pNext = pNew; 
+      else 
+         pHead = pNew; // there is no tail so there is no head! 
+      // finally, this is the new tail 
+      pTail = pNew; 
+      numItems++; 
+   } 
+   catch (...) 
+   { 
+      throw "ERROR: unable to allocate a new node for a list"; 
+   } 
+} 
 
-			// IF !isHead
-			if (pCurrent != NULL && !isHead)
-			{
-				pNew->pNext = pCurrent->pNext;
-				pCurrent->pNext = pNew;
-				return pNew;
-			}
-		}
-		catch (std::bad_alloc)
-		{
-			throw "ERROR: bad_alloc";
-		}
+/***********************************************
+ * LIST :: PUSH FRONT
+ * push item to front of list
+ **********************************************/
+template<class T>
+void List<T>::push_front(const T & item) throw(const char *)
+{
 
-	}
+}
 
-	/***********************************************
-	* FIND
-	* Find the Node corresponding to a given passed value from a given linked­list. The
-	* first parameter is a pointer to the front of the list, the second is the value to be found. The
-	* return value is a pointer to the found node if one exists. This should be a non­member
-	* function.
-	***********************************************/
-	template <class T>
-	Node <T> * find(Node <T> * pHead, const T & t)
-	{
-		for (Node<T> * p = pHead; p; p = p->pNext)
-		{
-			if (p->data == t)
-				return p;
-		}
-		return NULL;
-	}
+/***********************************************
+ * LIST :: REMOVE
+ * remove item from list
+ **********************************************/
+template<class T>
+void List<T>::remove(ListIterator<T>& it) throw(const char *)
+{
 
-	/***********************************************
-	* EXTRACTION OPERATOR <<
-	* Display the contents of a given linked­list.
-	***********************************************/
-	template <class T>
-	std::ostream & operator << (std::ostream & out, Node <T> * pHead)
-	{
-		for (Node <T> * p = pHead; p; p = p->pNext)
-		{
-			out << p->data;
-			if (p->pNext != NULL)
-				out << ", ";
-		}
+}
 
-		return out;
-	}
+/***********************************************
+ * LIST :: FRONT 
+ * access front of list
+ **********************************************/
+template<class T>
+T & List<T>::front() throw(const char *)
+{
+	if (pHead != NULL)
+      return pHead->data;
+   else
+      throw "Error: unable to access data from an empty list";
+}
 
-	/***********************************************
-	* FREE DATA
-	* Release all the memory contained in a given linked­list. The one parameter is a
-	* pointer to the head of the list. This should be a non­member function.
-	***********************************************/
-	template <class T>
-	void freeData(Node <T> * &pHead)
-	{
-		while (pHead != NULL)
-		{
-			Node <T> * p = pHead;
-			pHead = pHead->pNext;
-			delete p;
-		}
+/***********************************************
+ * LIST :: BACK
+ * access back of list
+ **********************************************/
+template<class T>
+T & List<T>::back() throw(const char *)
+{
+   if (pTail != NULL)
+      return pTail->data;
+   else
+      throw "Error: unable to access data from an empty list";
+}
 
-	}
+/***********************************************
+ * LIST :: INSERT
+ * sinsert an item into list
+ **********************************************/
+template<class T>
+ListIterator<T> List<T>::insert(T & item, ListIterator<T> & it) throw(const char *)
+{
+	return ListIterator<T>();
+}
 
-	template<class T>
-	inline int List<T>::size()
-	{
 
-		return l_size;
-	}
 
-	template<class T>
-	inline void List<T>::clear()
-	{
 
-	}
+/************************************************* 
+* LIST ITERATOR 
+* Iterate through a List, non-constant version
+* CITE: Brother Jones 
+************************************************/ 
+template <class T> 
+class ListIterator 
+{ 
+public: 
+   // default constructor: not pointing to anything 
+  ListIterator() : p(NULL) {} 
 
-	template<class T>
-	inline void List<T>::push_back(T & item) throw(const char *)
-	{
-		l_size++;
+   // non-default constrictor taking a pointer as a parameter 
+  ListIterator(Node <T> * p) : p(p) {} 
 
-	}
+   // copy constructor 
+  ListIterator(const ListIterator <T> & rhs) : p(rhs.p) {} 
 
-	template<class T>
-	inline void List<T>::push_front(T & item) throw(const char *)
-	{
+   // assignment operator 
+   ListIterator <T> & operator = (const ListIterator <T> & rhs) 
+   { 
+      p = rhs.p; 
+      return *this; 
+   } 
 
-	}
+   // dereference operator, fetch a node 
+   T & operator * () throw (const char *) 
+   { 
+      if (p) 
+         return p->data; 
+      else 
+         throw "ERROR: Trying to dereference a NULL pointer"; 
+   } 
 
-	template<class T>
-	inline void List<T>::remove(ListIterator<T>& it) throw(const char *)
-	{
+   // equals operator: are the iterators the same? 
+   bool operator == (const ListIterator <T> & rhs) const 
+   { 
+      return rhs.p == this->p; 
+   } 
 
-	}
+   // not-equals operator: are the iterators different? 
+   bool operator != (const ListIterator <T> & rhs) const 
+   { 
+      return rhs.p != this->p; 
+   } 
 
-	template<class T>
-	inline T List<T>::front() throw(const char *)
-	{
-		return T();
-	}
+   // postfix increment 
+   ListIterator <T> operator ++ (int postfix) 
+   { 
+      ListIterator <T> old(*this); 
+      assert(p); 
+      p = p->pNext; 
+      return old; 
+   } 
 
-	template<class T>
-	inline T List<T>::back() throw(const char *)
-	{
-		return T();
-	}
+   // prefix increment 
+   ListIterator <T> & operator ++ () 
+   { 
+      assert(p); 
+      p = p->pNext; 
+      return *this; 
+   } 
 
-	template<class T>
-	inline ListIterator<T> List<T>::insert(T & item) throw(const char *)
-	{
-		return ListIterator<T>();
-	}
+   // postfix decrement 
+   ListIterator <T> operator -- (int postfix) 
+   { 
+      ListIterator <T> old(*this); 
+      assert(p); 
+      p = p->pPrev; 
+      return old; 
+   } 
 
-	template<class T>
-	inline ListIterator<T> List<T>::begin() throw(const char *)
-	{
-		return ListIterator<T>();
-	}
+   // prefix decrement 
+   ListIterator <T> & operator -- () 
+   { 
+      assert(p); 
+      p = p->pPrev; 
+      return *this; 
+   } 
 
-	template<class T>
-	inline ListIterator<T> List<T>::rbegin()
-	{
-		return ListIterator<T>();
-	}
+   // two friends who need to access p directly 
+   friend ListIterator <T> List <T> ::insert(ListIterator <T> & it, 
+                                             const T & data) 
+      throw (const char *); 
+   friend ListIterator <T> List <T> ::remove(ListIterator <T> & it) 
+      throw (const char *); 
 
-	template<class T>
-	inline ListIterator<T> List<T>::end()
-	{
-		return ListIterator<T>();
-	}
+private: 
+   Node <T> * p; 
 
-	template<class T>
-	inline ListIterator<T> List<T>::rend()
-	{
-		return ListIterator<T>();
-	}
+}; 
+
+/************************************************* 
+* LIST CONST ITERATOR 
+* Iterate through a List, the constant version
+* CITE: Brother Jones 
+************************************************/ 
+template <class T> 
+class ListConstIterator 
+{ 
+public: 
+   // default constructor: not pointing to anything 
+  ListConstIterator() : p(NULL) {} 
+
+   // non-default constrictor taking a pointer as a parameter 
+  ListConstIterator(const Node <T> * p) : p(p) {} 
+
+   // copy constructor 
+  ListConstIterator(const ListConstIterator <T> & rhs) : p(rhs.p) {} 
+
+   // assignment operator 
+   ListConstIterator <T> & operator = (const ListConstIterator <T> & rhs) 
+      { 
+         p = rhs.p; 
+         return *this; 
+      } 
+
+   // dereference operator, fetch a node 
+   // this is the only real difference between ListConstIterator and the other 
+   T operator * () const { return p->data; } 
+
+   // equals operator: are the iterators the same? 
+   bool operator == (const ListConstIterator <T> & rhs) const 
+   { 
+      return rhs.p == this->p; 
+   } 
+
+   // not-equals operator: are the iterators different? 
+   bool operator != (const ListConstIterator <T> & rhs) const 
+   { 
+      return rhs.p != this->p; 
+   } 
+
+   // postfix increment 
+   ListConstIterator <T> operator ++ (int postfix) 
+   { 
+      ListConstIterator <T> old(*this); 
+      assert(p); 
+      p = p->pNext; 
+      return old; 
+   } 
+
+   // prefix increment 
+   ListConstIterator <T> & operator ++ () 
+   { 
+      assert(p); 
+      p = p->pNext; 
+      return *this; 
+   } 
+
+   // postfix decrement 
+   ListConstIterator <T> operator -- (int postfix) 
+   { 
+      ListConstIterator <T> old(*this); 
+      assert(p); 
+      p = p->pPrev; 
+      return old; 
+   } 
+
+   // prefix decrement 
+   ListConstIterator <T> & operator -- () 
+   { 
+      assert(p); 
+      p = p->pPrev; 
+      return *this; 
+   } 
+
+private: 
+   const Node <T> * p; 
+
+};
 
 #endif // LIST_H
