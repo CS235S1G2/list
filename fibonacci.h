@@ -11,7 +11,7 @@
 #ifndef FIBONACCI_H
 #define FIBONACCI_H
 
-#include <list>
+#include "list.h"
 
 // the interactive fibonacci program
 void fibonacci();
@@ -25,35 +25,18 @@ class WholeNumber
    public:
       // constructors
       WholeNumber() {}
-      WholeNumber(WholeNumber rhs);
-      WholeNumber(unsigned int value);
-      // destructor
-      ~WholeNumber();
+      WholeNumber(const WholeNumber & rhs);
+      WholeNumber(const int & value) throw (const char *);
       
       // operators
       WholeNumber & operator = (const WholeNumber & rhs);
       WholeNumber & operator += (const WholeNumber & rhs);
       
+      friend std::ostream & operator << (std::ostream & out, const WholeNumber & rhs);
+      
    private:
-      std::list <int> data;
+      List <int> data;
 };
-
-std::ostream & operator << (std::ostream & out, const WholeNumber & rhs)
-{
-   
-}
-
-WholeNumber & WholeNumber :: operator = (const WholeNumber & rhs)
-{
-   
-}
-
-WholeNumber & WholeNumber :: operator += (const WholeNumber & rhs)
-{
-   // Iterate through data
-   // add values from this and rhs
-   // carry values above 999
-}
 
 #endif // FIBONACCI_H
 
