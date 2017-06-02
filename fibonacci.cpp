@@ -5,7 +5,7 @@
  *    This will contain the implementation for fibonacci() as well as any
  *    other function or class implementations you may need
  * Author
- *    <your names here>
+ *    Nathan Bench, Jed Billman, Jeremy Chandler, Justin Chandler
  **********************************************************************/
 
 #include <iostream>
@@ -28,13 +28,15 @@ void fibonacci()
 
    // your code to display the first <number> Fibonacci numbers
    int count = 0;
-   int a = 0;
-   int b = 1;
-   int c = 1;
+   WholeNumber a(0);
+   WholeNumber b(1);
+   WholeNumber c(1);
    while (count < number)
    {
       // next fib
-      c = a + b;
+      c = a;
+      c += b;
+      
       a = b;
       b = c;
       // print result
@@ -53,24 +55,125 @@ void fibonacci()
 
    // your code to display the <number>th Fibonacci number
    count = 0;
-   a = 0;
-   b = 1;
-   c = 1;
+   WholeNumber x(0);
+   WholeNumber y(1);
+   WholeNumber z(1);
    while(count < number)
    {
       // next fib
-      c = a + b;
+      z = x;
+      z += y;
       
       // update previous fibs
-      a = b;
-      b = c;
+      x = y;
+      y = z;
       
       // update count
       count++;
    }
    
    // print fib
-   cout << a << endl;
+   cout << x << endl;
+}
+
+/************************************************
+ * WHOLE NUMBER :: CONSTRUCTOR
+ * non-default
+ ***********************************************/
+WholeNumber :: WholeNumber(const int & value) throw (const char *)
+{
+   data.push_back(value);
+}
+
+/************************************************
+ * WHOLE NUMBER :: CONSTRUCTOR
+ * copy
+ ***********************************************/
+WholeNumber::WholeNumber(const WholeNumber & rhs)
+{
+   *this = rhs;
+}
+
+/************************************************
+ * WHOLE NUMBER :: =
+ * assignment operator
+ ***********************************************/
+WholeNumber & WholeNumber :: operator = (const WholeNumber & rhs)
+{
+   data = rhs.data;
+   return *this;
+}
+
+/************************************************
+ * WHOLE NUMBER :: +=
+ * plus equals operator
+ ***********************************************/
+WholeNumber & WholeNumber :: operator += (const WholeNumber & rhs)
+{
+   // setup variables
+   int first;
+   int second;
+   int sum;
+   int holder = 0;
+   int carry;
+   List <int> result;
+   List <int> local(rhs.data);
+   ListIterator <int> it = data.rbegin();
+   ListIterator <int> itR = local.rbegin();
+   
+   // Iterate through data
+   while (it != data.rend() || itR != local.rend())
+   {
+      if (itR != local.rend())
+      {
+         first = *itR;
+         --itR;
+      }
+      else
+         first = 0;
+      
+      if (it != data.rend())
+      {
+         second = *it;
+         --it;
+      }
+      else
+         second = 0;
+      
+      // add values from this and rhs
+      holder = first + second + carry;
+      sum = holder % 1000;
+      carry = holder / 1000;
+      result.push_front(sum);
+   }
+   
+   if (carry > 0)
+      result.push_front(carry);
+   
+   data = result;
+   return *this;
+}
+
+/************************************************
+ * WHOLE NUMBER :: <<
+ * insertion operator
+ ***********************************************/
+std::ostream & operator << (std::ostream & out, const WholeNumber & rhs)
+{
+   List <int> local(rhs.data);
+   for (ListIterator <int> it = local.begin(); it != local.end(); ++it)
+   {
+      if (it != local.begin())
+      {
+         if (*it < 99)
+            out << ",0" << *it;
+         else
+            out << "," << *it;
+      }
+      else
+         if (it != NULL)
+            out << *it;
+   }
 }
 
 
