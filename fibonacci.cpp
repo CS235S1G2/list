@@ -36,18 +36,27 @@ void fibonacci()
       // next fib
       c = a;
       c += b;
-      
       a = b;
       b = c;
       // print result
-      cout << a << endl;
+      cout << "\t" << a << endl;
       
       // update previous fibs
-
       
       // update count
       count++;
    }
+
+   // This is just to test our subtraction equal operator, please ignore.
+   //while (count > 0)
+   //{
+	  // b = a;
+	  // c -= b;
+	  // a = c;
+	  // c = b;
+	  // cout << "\t" << a << endl;
+	  // --count;
+   //}
 
    // prompt for a single large Fibonacci
    cout << "Which Fibonacci number would you like to display? ";
@@ -73,7 +82,9 @@ void fibonacci()
    }
    
    // print fib
-   cout << x << endl;
+   cout << "\t" << x << endl;
+
+   
 }
 
 /************************************************
@@ -111,23 +122,23 @@ WholeNumber & WholeNumber :: operator = (const WholeNumber & rhs)
 WholeNumber & WholeNumber :: operator += (const WholeNumber & rhs)
 {
    // setup variables
-   int first;
-   int second;
-   int sum;
+   int first = 0;
+   int second = 0;
+   int sum = 0;
    int holder = 0;
-   int carry;
+   int carry = 0;
    List <int> result;
    List <int> local(rhs.data);
    ListIterator <int> it = data.rbegin();
-   ListIterator <int> itR = local.rbegin();
+   ListIterator <int> itRHS = local.rbegin();
    
    // Iterate through data
-   while (it != data.rend() || itR != local.rend())
+   while (it != data.rend() || itRHS != local.rend())
    {
-      if (itR != local.rend())
+      if (itRHS != local.rend())
       {
-         first = *itR;
-         --itR;
+         first = *itRHS;
+         --itRHS;
       }
       else
          first = 0;
@@ -155,13 +166,84 @@ WholeNumber & WholeNumber :: operator += (const WholeNumber & rhs)
 }
 
 /************************************************
+* WHOLE NUMBER :: -=
+* minus equals operator
+***********************************************/
+WholeNumber & WholeNumber :: operator -= (const WholeNumber & rhs)
+{
+	// setup variables
+	int diff = 0;
+	bool borrowed = false;
+	WholeNumber tempRHS(rhs);
+	WholeNumber temp(*this);
+	List <int> result;
+	ListIterator <int> itTemp = temp.data.rbegin();
+	ListIterator <int> itRHSTemp = tempRHS.data.rbegin();
+	
+	int first;
+	int last;
+
+	// Iterate through data
+	while (itTemp != temp.data.rend() || itRHSTemp != tempRHS.data.rend())
+	{
+		first = *itTemp;
+		last = *itRHSTemp;
+		if (itTemp == temp.data.rend())
+			first = 0;
+		if (itRHSTemp == tempRHS.data.rend())
+			last = 0;
+		// Do we need to carry?
+		if ((first - last) < 0)
+		{
+			if (borrowed == false)
+			{
+				*itTemp += 1000;
+			}
+			else
+			{
+				*itTemp += 999;
+			}
+			borrowed = true;
+		}
+		else
+			borrowed = false;
+		diff = first - last;
+		result.push_front(diff);
+		if (itTemp != temp.data.rend())
+			--itTemp;
+		if (itRHSTemp != tempRHS.data.rend())
+			--itRHSTemp;
+	}
+
+	//{
+	//	if (itRHS != local.rend())
+	//	{
+	//		first = *itRHS;
+	//		--itRHS;
+	//	}
+	//	else
+	//		first = 0;
+
+	//	if (it != data.rend())
+	//	{
+	//		second = *it;
+	//		--it;
+	//	}
+	//	else
+	//		second = 0;
+
+	data = result;
+	return *this;
+}
+
+/************************************************
  * WHOLE NUMBER :: <<
  * insertion operator
  ***********************************************/
 std::ostream & operator << (std::ostream & out, const WholeNumber & rhs)
 {
    List <int> local(rhs.data);
-   for (ListIterator <int> it = local.begin(); it != local.end(); ++it)
+   for (ListIterator <int> it = local.begin(); it != local.end(); it++)
    {
       if (it != local.begin())
       {
@@ -174,6 +256,7 @@ std::ostream & operator << (std::ostream & out, const WholeNumber & rhs)
          if (it != NULL)
             out << *it;
    }
+   return out;
 }
 
 

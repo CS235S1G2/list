@@ -31,6 +31,7 @@ class WholeNumber
       // operators
       WholeNumber & operator = (const WholeNumber & rhs);
       WholeNumber & operator += (const WholeNumber & rhs);
+	  WholeNumber & operator -= (const WholeNumber & rhs);
       
       friend std::ostream & operator << (std::ostream & out, const WholeNumber & rhs);
       

@@ -1,13 +1,16 @@
 ###############################################################
 # Program:
 #     Week 07, LIST
-#     Brother XXXXX, CS235
+#     Brother JonesL, CS235
 # Author:
 #     Nathan Bench, Jed Billman, Jeremy Chandler, Justin Chandler
 # Summary:
-#     <put a description here>
+#     List with fibonacci number for the implimentation.
 # Time:
-#     <how long did it take to complete this program>?
+#     Jeremy: 6 hrs.
+#     Jed: 4-5 hrs.
+#     Nathan: 12 hrs.
+#     Justin: 4 hrs.
 ###############################################################
 
 ##############################################################
