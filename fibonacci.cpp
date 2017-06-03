@@ -46,8 +46,8 @@ void fibonacci()
       // update count
       count++;
    }
-
-   // This is just to test our subtraction equal operator, please ignore.
+   //cout << endl << endl;
+    //This is just to test our subtraction equal operator, please ignore.
    //while (count > 0)
    //{
 	  // b = a;
@@ -174,6 +174,7 @@ WholeNumber & WholeNumber :: operator -= (const WholeNumber & rhs)
 	// setup variables
 	int diff = 0;
 	bool borrowed = false;
+	bool borrow = true;
 	WholeNumber tempRHS(rhs);
 	WholeNumber temp(*this);
 	List <int> result;
@@ -189,52 +190,62 @@ WholeNumber & WholeNumber :: operator -= (const WholeNumber & rhs)
 		first = *itTemp;
 		last = *itRHSTemp;
 		if (itTemp == temp.data.rend())
+		{
 			first = 0;
+			// Turn off borrowing for the rest of the operation.
+			borrow = false;
+		}
 		if (itRHSTemp == tempRHS.data.rend())
 			last = 0;
 		// Do we need to carry?
-		if ((first - last) < 0)
+		if ((first - last) < 0 && borrow != false)
 		{
 			if (borrowed == false)
 			{
 				*itTemp += 1000;
+				first = *itTemp;
 			}
 			else
 			{
 				*itTemp += 999;
+				first = *itTemp;
 			}
 			borrowed = true;
 		}
 		else
+		{
+			if (borrowed == true)
+			{
+				*itTemp -= 1;
+				first = *itTemp;
+			}
 			borrowed = false;
+		}
 		diff = first - last;
-		result.push_front(diff);
+		// Don't just add zeros
+		if (diff != 0)
+			result.push_front(diff);
 		if (itTemp != temp.data.rend())
 			--itTemp;
 		if (itRHSTemp != tempRHS.data.rend())
 			--itRHSTemp;
 	}
 
-	//{
-	//	if (itRHS != local.rend())
-	//	{
-	//		first = *itRHS;
-	//		--itRHS;
-	//	}
-	//	else
-	//		first = 0;
-
-	//	if (it != data.rend())
-	//	{
-	//		second = *it;
-	//		--it;
-	//	}
-	//	else
-	//		second = 0;
-
 	data = result;
 	return *this;
 }
+
+/************************************************
+* WHOLE NUMBER :: -
+* subtraction operator
+***********************************************/
+WholeNumber operator - (const WholeNumber & lhs, const WholeNumber & rhs)
+{
+	WholeNumber result(lhs);
+	result -= rhs;
+	return result;
+}
+
 
 /************************************************
  * WHOLE NUMBER :: <<
